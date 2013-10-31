@@ -56,21 +56,25 @@ Xiangdong Gu and Raji Balasubramanian
 \examples{
 	
 ## One sample setting  
-simdata1 <- datasim(N = 1000, blambda = 0.05, testtimes = 1:8, sensitivity = 0.7, specificity = 0.98,  
-		betas = NULL, twogroup = NULL, pmiss = 0.3, design = "MCAR", negpred = 1)
+simdata1 <- datasim(N = 1000, blambda = 0.05, testtimes = 1:8, sensitivity = 0.7,
+    specificity = 0.98,	betas = NULL, twogroup = NULL, pmiss = 0.3, 
+    design = "MCAR", negpred = 1)
 					  
 ## Two group setting, and the two groups have same sample sizes
-simdata2 <- datasim(N = 1000, blambda = 0.05, testtimes = 1:8, sensitivity = 0.7, specificity = 0.98,  
-		betas = 0.7, twogroup = 0.5, pmiss = 0.3, design = "MCAR", negpred = 1)
+simdata2 <- datasim(N = 1000, blambda = 0.05, testtimes = 1:8, sensitivity = 0.7,
+    specificity = 0.98, betas = 0.7, twogroup = 0.5, pmiss = 0.3, design = "MCAR",
+    negpred = 1)
 					          
 ## Three covariates with coefficients 0.5, 0.8, and 1.0
-simdata3 <- datasim(N = 1000, blambda = 0.05, testtimes = 1:8, sensitivity = 0.7, specificity = 0.98,  
-		betas = c(0.5, 0.8, 1.0), twogroup = NULL, pmiss = 0.3, design = "MCAR", negpred = 1)
+simdata3 <- datasim(N = 1000, blambda = 0.05, testtimes = 1:8, sensitivity = 0.7,
+     specificity = 0.98, betas = c(0.5, 0.8, 1.0), twogroup = NULL, pmiss = 0.3,
+     design = "MCAR", negpred = 1)
 					
 ## NTFP missing mechanism
-simdata4 <- datasim(N = 1000, blambda = 0.05, testtimes = 1:8, sensitivity = 0.7, specificity = 0.98,  
-		betas = c(0.5, 0.8, 1.0), twogroup = NULL, pmiss = 0.3, design = "NTFP", negpred = 1)					
-					
+simdata4 <- datasim(N = 1000, blambda = 0.05, testtimes = 1:8, sensitivity = 0.7,
+     specificity = 0.98, betas = c(0.5, 0.8, 1.0), twogroup = NULL, pmiss = 0.3,
+     design = "NTFP", negpred = 1)
+
 }
 					  
 					  

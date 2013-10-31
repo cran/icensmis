@@ -1,11 +1,13 @@
-2b9c179439b99797067ecad3cead9caa *DESCRIPTION
+31465b1910a8123a2e3cd45b2f88854d *DESCRIPTION
 8b54e5a89fbda3af5e077053d40bec76 *NAMESPACE
 ceeb4a57d99ce8a79d15552f7c51a140 *R/datasim.R
 6da7e7c8d8efd8f43b1ef4cea0a739d5 *R/icmis.R
 474013756a5f8ca3c422d571454d52bc *R/icpower.R
+94870ecfee9b01da15d02a43d4467b7d *R/icpower.val.R
 7d7f88b7680d228f95c7f2e8eb987692 *R/icpowerpf.R
-d1e92adefb1b647c75ec29cc433392ef *man/datasim.Rd
+56fe05eb8fe06e486b9fe9b163f5f810 *man/datasim.Rd
 b509e55089c146d769bbe72f8da6a307 *man/icensmis-package.Rd
-48ce1e5f2a72eef66fd62836430ab1d7 *man/icmis.Rd
-b2f4f208835263095491bd18e7d8a243 *man/icpower.Rd
+ce42d889504ee87f64d3e6220edc963a *man/icmis.Rd
+38fe75f1d4389629af970ec36df6f1b5 *man/icpower.Rd
+eec5f9b492e1987b8764131e361cc019 *man/icpower.val.Rd
 abd8a3a3b73a7fbbec5f729ec6ca3834 *man/icpowerpf.Rd
