@@ -1,10 +1,10 @@
-41519c5941a36822b7e1cfaeb18f5471 *DESCRIPTION
+5d36323cb47db8f62b7534c888e74fd2 *DESCRIPTION
 093b776a6694d9a4d73b9e175a3868f0 *NAMESPACE
 488e1f8c11ca9e3a7fb366823fc5457b *R/HighDimCR.R
-b48df7c04d541a567e0058785d4eac0d *R/RcppExports.R
+418f2d77823fed6e7511f22d21d29345 *R/RcppExports.R
 5eaeedd31c59d26303bdcf6537877672 *R/datasim.R
 1d67507212078281c2441c70d8c25eec *R/icmis.R
-ecbbfaddf5877c183f6232b3a565010e *R/icpower.R
+5e767f7744baaeb608d495d28f15204f *R/icpower.R
 171195bd7cafee27a657d8ceff20cf9c *R/icpower.val.R
 53852dc527b5ab5ed7a518c38d6274f5 *R/icpowerpf.R
 a829a425842247273328434f2be60f86 *man/datasim.Rd
@@ -13,9 +13,8 @@ a829a425842247273328434f2be60f86 *man/datasim.Rd
 18f6847bdad226f7282bad5ee39afe4b *man/icpower.val.Rd
 f044316c03a063ba50b56f30e826696e *man/icpowerpf.Rd
 73690e870581c93be3b2c3ee6696fcce *src/HighDimCR.cpp
-6733240f1ad0433688430c8e570dac57 *src/RcppExports.cpp
+d2ca6b6df8c2629024ca650ded1546e4 *src/RcppExports.cpp
 01bedd3106bdcea0192d98cc10991e00 *src/dataproc.cpp
 f68d8429e5a4cf0d4484ea8845e712fc *src/loglikA.cpp
 a78a29dd027aee1c36c4448b1687343a *src/loglikB.cpp
 2b13207d1d61d9980bb9e0b9679e58c5 *src/loglikC.cpp
-2006720e8cfc33bc557c6589875fe53e *src/powerfuncs.cpp
