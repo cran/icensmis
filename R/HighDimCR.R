@@ -2,17 +2,11 @@ fitsurv <- function(parm, Dm, eta) {
   optim(parm, loglik_lamb, gradlik_lamb, method="BFGS", Dm=Dm, eta=eta)$par
 }
 
-fitsurv1 <- function(parm, Dm, eta) {
-  fit <- optim(parm, loglik_lamb, gradlik_lamb, method="BFGS", Dm=Dm, eta=eta)
-  c(-fit$value, fit$par)
-}
-
 fitsurv_pw <- function(parm, Dm, eta, breaks) {
   optim(parm, loglik_pw, gradlik_pw, method="BFGS", Dm=Dm, eta=eta, breaks=breaks)$par
 }
 
-simoutcome <- function(Xmat, noevent, testtimes, sensitivity, specificity, beta.marker, design="NTFP") {
-  stopifnot(design %in% c("MCAR", "NTFP"))
+simoutcome <- function(Xmat, noevent, testtimes, sensitivity, specificity, beta.marker) {
   N <- nrow(Xmat)
   nfeature <- ncol(Xmat)
   blambda <- -log(noevent)/max(testtimes)
@@ -30,14 +24,12 @@ simoutcome <- function(Xmat, noevent, testtimes, sensitivity, specificity, beta.
   result <- rbinom(length(occur), 1, probs)  
   data <- data.frame(ID, time, result)
   ## NTFP
-  if (design=="NTFP") {
-    afterpos <- function(x) {
-      npos <- cumsum(x == 1)
-      (npos == 0) | (npos == 1 & x == 1)
-    }
-    keep <- unlist(tapply(data$result, data$ID, afterpos))
-    data <- data[keep, ]    
+  afterpos <- function(x) {
+    npos <- cumsum(x == 1)
+    (npos == 0) | (npos == 1 & x == 1)
   }
+  keep <- unlist(tapply(data$result, data$ID, afterpos))
+  data <- data[keep, ]
   row.names(data) <- NULL
   data
 }
