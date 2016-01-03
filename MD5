@@ -1,4 +1,4 @@
-ba86dfb61834e5e5a6545e37c4f55b9b *DESCRIPTION
+5f6d893baebda10bf0d73573514bfd4d *DESCRIPTION
 98470428ab224ece956c5af5f6b5d34c *NAMESPACE
 37266d0af09628f8c98345a935e09ced *R/HighDimCR.R
 6f7ccbde3a31739f13feb011469eb641 *R/RcppExports.R
@@ -19,6 +19,6 @@ e1f06ab17f9d1457b386fdf6c8a3a5ea *src/HighDimCR.cpp
 f68d8429e5a4cf0d4484ea8845e712fc *src/loglikA.cpp
 a78a29dd027aee1c36c4448b1687343a *src/loglikB.cpp
 2b13207d1d61d9980bb9e0b9679e58c5 *src/loglikC.cpp
-e450183672205d0e8d6f85c963fdddb6 *src/powerfuncs.cpp
+f4cc38a1c1c0bb075ff9523d97df2ad6 *src/powerfuncs.cpp
 daf72bbd3b71ed97fad10ec0d2753708 *tests/testthat.R
 8656f9e61a8798f3fc7c69fda1a1eeb2 *tests/testthat/test_power.R
