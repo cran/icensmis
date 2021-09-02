@@ -47,7 +47,7 @@
 #'   likelihood function)
 #' @param ... other arguments passed to \code{\link{optim}} function. For 
 #'   example, if the optimization does not converge, we can increase maxit in 
-#'   the optim function.
+#'   the optim function's control argument.
 #'   
 #' @details The input data should be in longitudinal form with one row per test 
 #'   time. Use \code{\link{datasim}} to simulate a dataset to see the sample 
@@ -120,8 +120,8 @@
 #'  formula = ~cov1+cov2+cov3, negpred = 1, time.varying = TRUE)
 
 icmis <- function(subject, testtime, result, data, sensitivity, specificity,
-                   formula = NULL, negpred = 1, time.varying = F, 
-                   betai = NULL, initsurv = 0.5, param = 1, ...){
+                  formula = NULL, negpred = 1, time.varying = F, 
+                  betai = NULL, initsurv = 0.5, param = 1, ...){
   
   #############################################################################
   # Data Pre-processing: sort by id then by time
@@ -148,6 +148,7 @@ icmis <- function(subject, testtime, result, data, sensitivity, specificity,
             length(negpred) == 1, negpred >= 0, negpred <= 1)
   stopifnot(length(initsurv) == 1, initsurv > 0, initsurv < 1)
   if (!all(result %in% c(0, 1))) stop("result must be 0 or 1")
+  if (any(is.na(time))) stop("Missing value found in testtime")
   if (any(tapply(time, id, anyDuplicated)))
     stop("existing duplicated visit times for some subjects")  
   if (!all(utime >= 0 & utime < Inf))
@@ -155,6 +156,31 @@ icmis <- function(subject, testtime, result, data, sensitivity, specificity,
   stopifnot(length(param) == 1, param %in% c(1, 2, 3))
   if (param == 3 && time.varying) 
     stop("parameterization 3 is not available for time varying model")
+  
+  # Issue-1: Check for baseline prevalent subject
+  if (any(time == 0 & result == 1)) {
+    pre_ids <- id[time == 0 & result == 1]
+    stop(sprintf(
+      "Existing baseline prevalent subjects: %s; need to remove them",
+      paste(pre_ids, collapse = ","))
+    )
+  }
+  
+  # Issue-1: Check number of unique test times
+  if (length(utime) > sqrt(length(time))) {
+    warning(paste0(
+      "There are too many distinct testtime values, consider",
+      " rounding testtime, e.g. to year or month"
+    ))
+  }
+  
+  # Error message for convergence
+  conv_msg <- paste0(
+    "Model not converged, code: %s, refer to optim function for details. ",
+    "Try to increase maxit in function argument, ", 
+    "e.g. using control = list(maxit = 500), and/or",
+    " use different parameterization by changing param argument."
+  )
   
   #############################################################################
   # Compute D matrix
@@ -172,14 +198,65 @@ icmis <- function(subject, testtime, result, data, sensitivity, specificity,
     lami <- rep(-log(initsurv)/J, J)
     tosurv <- function(x) exp(-cumsum(x))
     lowlam <- rep(0, J)
+    surv95 <- function(lam, covm) {
+      A <- matrix(0, nrow = J, ncol = J)
+      idx <- cbind(
+        unlist(sapply(1:J, function(i) rep(i, i))),
+        unlist(sapply(1:J, function(i) 1:i))
+      )
+      A[idx] <- 1
+      covmt <- A %*% covm %*% t(A)
+      lam_sd <- sqrt(diag(covmt))
+      low95 <- exp(-(cumsum(lam) + 1.96 * lam_sd))
+      high95 <- exp(-(cumsum(lam) - 1.96 * lam_sd))
+      data.frame(
+        time = utime[utime!=0],
+        surv = tosurv(lam),
+        low95 = low95,
+        high95 = high95)
+    }
   } else if (param == 2) {
     lami <- log(rep(-log(initsurv)/J, J))
     tosurv <- function(x) exp(-cumsum(exp(x)))
+    surv95 <- function(lam, covm) {
+      A <- matrix(0, nrow = J, ncol = J)
+      idx <- cbind(
+        unlist(sapply(1:J, function(i) rep(i, i))),
+        unlist(sapply(1:J, function(i) 1:i))
+      )
+      A[idx] <- exp(lam[idx[, 2]])
+      covmt <- A %*% covm %*% t(A)
+      lam_sd <- sqrt(diag(covmt))
+      low95 <- exp(-(cumsum(exp(lam)) + 1.96 * lam_sd))
+      high95 <- exp(-(cumsum(exp(lam)) - 1.96 * lam_sd))
+      data.frame(
+        time = utime[utime!=0],
+        surv = tosurv(lam),
+        low95 = low95,
+        high95 = high95)
+    }
   } else if (param == 3) {
     lami <- log(-log(seq(1, initsurv, length.out = J + 1)[-1]))
     lami <- c(lami[1], diff(lami))
     tosurv <- function(x) exp(-exp(cumsum(x)))
     lowlam <- c(-Inf, rep(0, J - 1))
+    surv95 <- function(lam, covm) {
+      A <- matrix(0, nrow = J, ncol = J)
+      idx <- cbind(
+        unlist(sapply(1:J, function(i) rep(i, i))),
+        unlist(sapply(1:J, function(i) 1:i))
+      )
+      A[idx] <- 1
+      covmt <- A %*% covm %*% t(A)
+      lam_sd <- sqrt(diag(covmt))
+      low95 <- exp(-exp((cumsum(lam) + 1.96 * lam_sd)))
+      high95 <- exp(-exp((cumsum(lam) - 1.96 * lam_sd)))
+      data.frame(
+        time = utime[utime!=0],
+        surv = tosurv(lam),
+        low95 = low95,
+        high95 = high95)
+    }
   }
   
   #############################################################################
@@ -187,11 +264,11 @@ icmis <- function(subject, testtime, result, data, sensitivity, specificity,
   #############################################################################
   output <- function(q) {
     loglik <- -q$value
+    cov_all <- as.matrix(solve(q$hessian))
     lam <- q$par[1:J]
-    surv <- tosurv(lam)
-    survival <- data.frame(time = utime[utime!=0], surv = surv)
+    survival <- surv95(lam, cov_all[1:J, 1:J])
     if (!is.null(formula)) {
-      cov <- as.matrix(solve(q$hessian)[-(1:J), -(1:J)])
+      cov <- cov_all[-(1:J), -(1:J), drop = FALSE]
       rownames(cov) <- colnames(cov) <- beta.nm
       beta.fit <- q$par[-(1:J)]
       beta.sd <- sqrt(diag(cov))
@@ -206,22 +283,22 @@ icmis <- function(subject, testtime, result, data, sensitivity, specificity,
     list(loglik = loglik, coefficient = coef, survival = survival, beta.cov = cov,
          nsub = nsub)
   }
-
+  
   #############################################################################
   # No-covariate model (one sample case)
   #############################################################################
   if (is.null(formula)) {
     if (param == 1) {
       q <- optim(lami, loglikA0, gradlikA0, lower = lowlam, Dm = Dm, 
-                 method = "L-BFGS-B", ...)
+                 method = "L-BFGS-B", hessian = T, ...)
     } else if (param == 2) {
-      q <- optim(lami, loglikB0, gradlikB0, Dm = Dm, method = "BFGS", ...)
+      q <- optim(lami, loglikB0, gradlikB0, Dm = Dm, method = "BFGS", 
+                 hessian = T, ...)
     } else if (param == 3) {
       q <- optim(lami, loglikC0, gradlikC0, lower = lowlam, Dm = Dm, 
-                 method = "L-BFGS-B", ...)
+                 method = "L-BFGS-B", hessian = T, ...)
     }
-    if (q$convergence != 0) 
-      stop(paste("Not converged, code:", q$convergence)) 
+    if (q$convergence != 0) stop(sprintf(conv_msg, q$convergence)) 
     return(output(q))
   }
   
@@ -251,8 +328,7 @@ icmis <- function(subject, testtime, result, data, sensitivity, specificity,
       q <- optim(parmi, loglikC, gradlikC, lower = c(lowlam, rep(-Inf, nbeta)),
                  Dm = Dm, Xmat = Xmat, method = "L-BFGS-B", hessian = T, ...)
     }    
-    if (q$convergence != 0) 
-      stop(paste("Not converged, code:", q$convergence)) 
+    if (q$convergence != 0) stop(sprintf(conv_msg, q$convergence)) 
     return(output(q))
   }
   
@@ -271,7 +347,28 @@ icmis <- function(subject, testtime, result, data, sensitivity, specificity,
     q <- optim(parmi, loglikTB, gradlikTB, Dm = Dm, TXmat = TXmat, method = "BFGS",
                hessian = T, ...)
   }  
-  if (q$convergence != 0) 
-    stop(paste("Not converged, code:", q$convergence)) 
+  if (q$convergence != 0) stop(sprintf(conv_msg, q$convergence)) 
   return(output(q))
 }
+
+
+#' Plot survival function
+#' 
+#' This function plots survival function with confidence interval 
+#' from model output
+#' 
+#' @param obj model output object
+#' 
+#' @export
+#' 
+#' @importFrom graphics lines
+#' 
+plot_surv <- function(obj) {
+  surv <- obj$survival
+  surv <- rbind(c(0, 1, 1, 1), surv)
+  plot(surv$time, surv$surv, type = "s", col = "red", xlab = "time",
+       ylab = "Survival")
+  lines(surv$time, surv$low95, type = "s", lty = 2)
+  lines(surv$time, surv$high95, type = "s", lty = 2)
+}
+
